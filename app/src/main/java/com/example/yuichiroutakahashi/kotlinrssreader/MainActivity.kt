@@ -2,18 +2,27 @@ package com.example.yuichiroutakahashi.kotlinrssreader
 
 import android.app.ProgressDialog
 import android.os.Bundle
+import android.provider.Contacts
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.example.yuichiroutakahashi.kotlinrssreader.Adapter.FeedAdapter
+import com.example.yuichiroutakahashi.kotlinrssreader.Common.FeedRepository
 import com.example.yuichiroutakahashi.kotlinrssreader.Common.RetrofitServiceGenerator
 import com.example.yuichiroutakahashi.kotlinrssreader.Model.RSSObject
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.coroutines.experimental.CoroutineContext
+import kotlinx.coroutines.experimental.android.UI
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -48,73 +57,23 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private fun loadRSS() {
+    private fun loadRSS() = launch(UI) {
 
-        var dialog = ProgressDialog(this@MainActivity)
-        val call = RetrofitServiceGenerator.createService().getFeed(RSS_link)
+        val dialog = ProgressDialog(this@MainActivity)
 
         dialog.setMessage("Please wait...")
         dialog.show()
 
-        call.enqueue(object : Callback<RSSObject> {
+        val repository = FeedRepository(RetrofitServiceGenerator.createService())
+        val response = repository.feeds(RSS_link).await()
 
-            override fun onFailure(call: Call<RSSObject>?, t: Throwable?) {
+        dialog.dismiss()
 
-                dialog.dismiss()
-                Log.d("ResponseError", "failed")
-            }
-
-            override fun onResponse(call: Call<RSSObject>?, response: Response<RSSObject>?) {
-
-                dialog.dismiss()
-
-                if (response?.isSuccessful == true) {
-                    response?.body()?.let { rssObject ->
-                        Log.d("Response", "${rssObject.toString()}")
-                        val adapter = FeedAdapter(rssObject, baseContext)
-                        recyclerView.adapter = adapter
-                        adapter.notifyDataSetChanged()
-                    }
-                }
-            }
-        })
-//
-//        val loadRSSAsync = object: AsyncTask<String, String, String>() {
-//
-//            var mDialog = ProgressDialog(this@MainActivity)
-//
-//            override fun onPostExecute(result: String?) {
-//                mDialog.dismiss()
-//
-//                var rssObject: RSSObject
-//
-//                rssObject = Gson().fromJson<RSSObject>(result, RSSObject::class.java!!)
-//                val adapter = FeedAdapter(rssObject, baseContext)
-//
-//                recyclerView.adapter = adapter
-//
-//                adapter.notifyDataSetChanged()
-//            }
-//
-//            override fun onPreExecute() {
-//                mDialog.setMessage("Please wait...")
-//                mDialog.show()
-//            }
-//
-//            override fun doInBackground(vararg params: String): String {
-//
-//                val result: String
-//                val http = HttpDataHandler()
-//
-//                result = http.getHTTPDataHandler(params[0])
-//
-//                return result
-//            }
-//        }
-//
-//        val urlGetData = StringBuilder(RSS_to_JSON_API)
-//        urlGetData.append(RSS_link)
-//
-//        loadRSSAsync.execute(urlGetData.toString())
+        response?.body()?.let { rssObject ->
+            Log.d("Response", "${rssObject.toString()}")
+            val adapter = FeedAdapter(rssObject, baseContext)
+            recyclerView.adapter = adapter
+            adapter.notifyDataSetChanged()
+        }
     }
 }
