@@ -2,7 +2,6 @@ package com.example.yuichiroutakahashi.kotlinrssreader
 
 import android.app.ProgressDialog
 import android.os.Bundle
-import android.provider.Contacts
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
@@ -11,17 +10,9 @@ import android.view.MenuItem
 import com.example.yuichiroutakahashi.kotlinrssreader.Adapter.FeedAdapter
 import com.example.yuichiroutakahashi.kotlinrssreader.Common.FeedRepository
 import com.example.yuichiroutakahashi.kotlinrssreader.Common.RetrofitServiceGenerator
-import com.example.yuichiroutakahashi.kotlinrssreader.Model.RSSObject
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import kotlin.coroutines.experimental.CoroutineContext
 import kotlinx.coroutines.experimental.android.UI
-
+import kotlinx.coroutines.experimental.launch
 
 
 class MainActivity : AppCompatActivity() {
